@@ -1,105 +1,228 @@
 # DataLabs Demo
 
-A working demo of the DataLabs architecture: FastAPI + async SQLAlchemy +
-Postgres backend, React + TypeScript + MUI + Tailwind frontend, JWT auth,
-all 24 modules present.
+> **OpenAI Build Week 2026 Submission**
 
-Verified this session: backend imports cleanly (103 routes), full
-`py_compile` pass on every backend file, frontend `tsc -b` type-checks
-clean, and `vite build` produces a working production bundle.
+DataLabs Demo is a proof-of-concept AI data platform built during the OpenAI Build Week hackathon using **GPT-5.6** and **Codex**. It demonstrates the core architecture of a modern AI data management platform rather than a production-ready system.
 
-## Depth: Deep MVP vs. scaffolded
+The project showcases a full-stack architecture consisting of:
 
-Per your call, six modules are fully wired end-to-end (real service
-layers, real workflows, matching frontend pages):
+* **FastAPI** backend
+* **React + TypeScript + Vite** frontend
+* **PostgreSQL** database
+* **Redis** for caching and background services
+* **Docker Compose** for local development
+* **JWT Authentication**
+* **Async SQLAlchemy ORM**
+* **Material UI + Tailwind CSS**
 
-- **auth** — register/login/refresh/me, JWT (access + refresh tokens)
-- **workspaces → projects** — the ownership chain projects hang off
-- **datasets** — dataset → version → asset linking
-- **annotations** — task → assignment → submit (with labels) → review
-- **notifications** — list/mark-read/preferences
-- **search** — real ILIKE search across projects/datasets/annotation tasks
+The primary goal was to validate the platform architecture, workflows, and developer experience within the hackathon timeframe.
 
-The other 17 modules (enterprises, teams, experiments, model_registry,
-training, deployments, pipelines, inference, registry, monitoring,
-plugins, analytics, audit, storage, billing, api_keys, marketplace) have
-real SQLAlchemy models and a real, database-backed CRUD API — via a
-shared `GenericCRUDRouter` factory on the backend and a matching
-`GenericModulePage` component on the frontend — but no bespoke business
-logic yet (no approval workflows, no training orchestration, etc.). This
-was the explicit tradeoff for "wide but real API surface, without
-writing 17 modules' worth of custom logic."
+---
 
-`api_keys` is the one exception in the scaffolded group — it has real
-logic (one-time secret reveal) since generic CRUD can't do that safely.
+# Project Scope
 
-`audit` also has a real `log_action()` helper already called from
-login/register, so the "central audit logging" goal has at least one
-genuine, working caller — extend the calls into the other modules'
-service layers as you build them out.
+Rather than building a fully production-ready platform, this project focuses on demonstrating the complete architecture with representative implementations.
 
-## Running it
+### Fully Implemented Modules
+
+The following modules include custom business logic and complete workflows:
+
+* Authentication
+
+  * User registration
+  * Login
+  * JWT authentication
+  * Refresh tokens
+  * Current user profile
+
+* Workspaces & Projects
+
+  * Personal workspace creation
+  * Project ownership
+  * Project management
+
+* Datasets
+
+  * Dataset creation
+  * Dataset versions
+  * Asset relationships
+
+* Annotations
+
+  * Annotation tasks
+  * Task assignments
+  * Label submission
+  * Review workflow
+
+* Notifications
+
+  * Notification listing
+  * Mark as read
+  * User preferences
+
+* Search
+
+  * Cross-module search
+  * Projects
+  * Datasets
+  * Annotation tasks
+
+---
+
+# Platform Architecture
+
+The remaining platform modules demonstrate the intended architecture using shared CRUD services and database models.
+
+These include:
+
+* Enterprises
+* Teams
+* Experiments
+* Model Registry
+* Training
+* Deployments
+* Pipelines
+* Inference
+* Registry
+* Monitoring
+* Plugins
+* Analytics
+* Audit
+* Storage
+* Billing
+* API Keys
+* Marketplace
+
+These modules already include:
+
+* SQLAlchemy models
+* Database relationships
+* FastAPI CRUD endpoints
+* Shared service architecture
+* Generic frontend pages
+
+However, they intentionally do **not** yet include advanced production workflows such as orchestration engines, approval systems, deployment pipelines, or distributed processing.
+
+This design choice allowed the project to demonstrate the complete platform architecture while remaining achievable within the Build Week timeframe.
+
+---
+
+# Special Implementations
+
+Although most modules use the shared CRUD architecture, a few include additional functionality.
+
+### API Keys
+
+Implements secure one-time secret generation and retrieval rather than standard CRUD operations.
+
+### Audit
+
+Includes centralized audit logging with authentication events already recorded. The remaining modules are structured so additional audit events can easily be added as development continues.
+
+---
+
+# Running the Demo
+
+### Backend
 
 ```bash
 cd backend
-cp .env.example .env       # edit JWT_SECRET_KEY etc for anything beyond local demo use
+cp .env.example .env
 docker compose up --build
 ```
 
-This starts Postgres (`datalabs_demo` db), Redis, and the backend on
-`:8000`. Tables are created directly from ORM metadata on startup
-(`create_all_tables()` in `app/main.py`) — that's a demo shortcut, not a
-migration strategy. Swap to Alembic before anything resembling
-production:
+This starts:
 
-```bash
-cd backend
-alembic revision --autogenerate -m "init"
-alembic upgrade head
+* PostgreSQL
+* Redis
+* FastAPI Backend
+
+The backend currently creates database tables directly from SQLAlchemy metadata during startup.
+
+**Note:** This is a hackathon shortcut and should be replaced with Alembic migrations in future development.
+
+API documentation is available at:
+
+```
+http://localhost:8000/docs
 ```
 
-(The `alembic/env.py` is already wired for async SQLAlchemy and imports
-every module's models — autogenerate should pick up the full schema.)
+---
 
-Frontend:
+### Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env       # VITE_API_BASE_URL, defaults to localhost:8000
+cp .env.example .env
 npm run dev
 ```
 
-Visit `http://localhost:5173`. Sign up with any email — a personal
-workspace is created automatically on first dashboard load so you have
-somewhere for projects to live (Enterprise → Team → Workspace is
-present as real scaffolded modules, but the demo doesn't force you
-through that chain to get started).
+Open:
 
-API docs: `http://localhost:8000/docs` (FastAPI's automatic Swagger UI —
-useful for poking at the 17 scaffolded modules directly).
+```
+http://localhost:5173
+```
 
-## What to build next, in order
+New users can register immediately. A personal workspace is automatically created to simplify the demo experience.
 
-1. **Alembic migrations** — replace `create_all_tables()` before this
-   touches a real database anyone depends on.
-2. **Real file upload** for `assets` — right now `/assets/` only
-   registers metadata against a `storage_path` the frontend already
-   has; there's no actual S3/GCS/local disk handler yet.
-3. **Enterprise → Team → Workspace chain** — `workspaces.enterprise_id`
-   is already a nullable pointer waiting for `enterprises`/`teams` to
-   grow past generic CRUD.
-4. **Model Registry → Training → Deployment → Inference loop** — the
-   models exist and reference each other (`Deployment.model_id →
-   MLModel.id`), but there's no orchestration logic connecting them yet.
-5. **OAuth2 (Google/GitHub)** — config fields for client id/secret
-   already exist in `app/core/config.py`, unused. Standard `authlib` +
-   FastAPI OAuth flow slots in there.
-6. **Kubernetes manifests** — only Docker Compose exists right now;
-   the Dockerfile is a reasonable base for a k8s Deployment.
+---
 
-## Notable naming choice
+# Future Roadmap
 
-The "Models" module from your architecture doc (model registry) is
-named `model_registry` in code — `models` would collide with the
-`app/modules/<name>/models.py` convention used by every other module.
+The next development milestones include:
+
+1. Replace automatic table creation with Alembic migrations.
+2. Implement real file storage (S3, Azure Blob, or local storage).
+3. Complete the Enterprise → Team → Workspace workflow.
+4. Build the complete Model Registry → Training → Deployment → Inference lifecycle.
+5. Add OAuth authentication (Google and GitHub).
+6. Deploy using Kubernetes for production environments.
+
+---
+
+# Technology Stack
+
+### Backend
+
+* FastAPI
+* Async SQLAlchemy
+* PostgreSQL
+* Redis
+* Docker
+* JWT Authentication
+
+### Frontend
+
+* React
+* TypeScript
+* Vite
+* Material UI
+* Tailwind CSS
+
+---
+
+# Built with GPT-5.6 and Codex
+
+This project was developed during **OpenAI Build Week** using **GPT-5.6** and **Codex**.
+
+Codex accelerated development by assisting with:
+
+* Backend architecture
+* API scaffolding
+* Database models
+* CRUD generation
+* Frontend page generation
+* Component structure
+* Folder organization
+* Refactoring
+* Debugging
+* Documentation
+
+GPT-5.6 was used throughout the project for architectural planning, reasoning, implementation guidance, and iterative problem solving.
+
+---
+
+# Disclaimer
+
+This repository is **not a production-ready platform**. It is a hackathon demonstration intended to showcase the architecture, workflows, and development approach behind DataLabs. Several advanced features have been intentionally deferred to future iterations to prioritize delivering a functional end-to-end prototype within the Build Week timeline.
