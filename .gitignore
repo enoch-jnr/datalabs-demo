@@ -1,0 +1,97 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Type checking
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# =========================
+# FastAPI / Environment
+# =========================
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# SQLite
+*.sqlite3
+
+# =========================
+# Alembic
+# =========================
+alembic/versions/__pycache__/
+
+# =========================
+# VS Code / JetBrains
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# macOS / Windows
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Node / React / Vite
+# =========================
+node_modules/
+dist/
+coverage/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite
+.vite/
+
+# =========================
+# Docker
+# =========================
+*.pid
+
+# Docker volumes (optional)
+postgres_data/
+redis_data/
+
+# =========================
+# Misc
+# =========================
+.cache/
+temp/
+tmp/
